@@ -1,12 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func codeView(w http.ResponseWriter,r *http.Request){
-	w.Write([]byte("Display a specific code..."))
+
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err!=nil || id<1 {
+		http.NotFound(w,r)
+		return
+	}
+
+	msg := fmt.Sprintf("Display a specific code snippet with ID %d...",id)
+	w.Write([]byte(msg))
 }
 
 func codeCreate(w http.ResponseWriter,r *http.Request){
@@ -23,7 +33,7 @@ func main() {
     // register the home function as the handler for the "/" URL pattern.
     mux := http.NewServeMux()
 	mux.HandleFunc("/{$}",home)
-	mux.HandleFunc("/code/view",codeView)
+	mux.HandleFunc("/code/view/{id}",codeView)//Add the {id} wild card segment.
 	mux.HandleFunc("/code/create",codeCreate)
 
 	log.Println("Starting server on: 4000")
