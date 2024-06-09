@@ -15,8 +15,7 @@ func codeView(w http.ResponseWriter,r *http.Request){
 		return
 	}
 
-	msg := fmt.Sprintf("Display a specific code snippet with ID %d...",id)
-	w.Write([]byte(msg))
+	fmt.Fprintf(w,"Display a specific code snippet with ID %d...",id)
 }
 
 func codeCreate(w http.ResponseWriter,r *http.Request){
@@ -25,11 +24,21 @@ func codeCreate(w http.ResponseWriter,r *http.Request){
 
 // Add a snippetCreatePost handler function.
 func codeCreatePost(w http.ResponseWriter,r *http.Request){
+
+	// Use the w.WriteHeader() method to send a 201 status code.
+	w.WriteHeader(http.StatusCreated)
+
 	w.Write([]byte("Save a new code snippet..."))
 }
 
 
 func home(w http.ResponseWriter,r *http.Request){
+
+	// Use the Header().Add() method to add a 'Server: Go' header to the
+    // response header map. The first parameter is the header name, and
+    // the second parameter is the header value.
+	w.Header().Add("Server","Go")
+
 	w.Write([]byte("Hello from Codebin!"))
 }
 
