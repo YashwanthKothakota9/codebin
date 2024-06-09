@@ -23,6 +23,11 @@ func codeCreate(w http.ResponseWriter,r *http.Request){
 	w.Write([]byte("Display a form for creating new code"))
 }
 
+// Add a snippetCreatePost handler function.
+func codeCreatePost(w http.ResponseWriter,r *http.Request){
+	w.Write([]byte("Save a new code snippet..."))
+}
+
 
 func home(w http.ResponseWriter,r *http.Request){
 	w.Write([]byte("Hello from Codebin!"))
@@ -32,9 +37,12 @@ func main() {
 	// Use the http.NewServeMux() function to initialize a new servemux, then
     // register the home function as the handler for the "/" URL pattern.
     mux := http.NewServeMux()
-	mux.HandleFunc("/{$}",home)
-	mux.HandleFunc("/code/view/{id}",codeView)//Add the {id} wild card segment.
-	mux.HandleFunc("/code/create",codeCreate)
+	mux.HandleFunc("GET /{$}",home)
+	mux.HandleFunc("GET /code/view/{id}",codeView)//Add the {id} wild card segment.
+	mux.HandleFunc("GET /code/create",codeCreate)
+
+	//restricted to POST requests only
+	mux.HandleFunc("POST /code/create",codeCreatePost)
 
 	log.Println("Starting server on: 4000")
 
