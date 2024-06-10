@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -18,6 +19,10 @@ func main() {
 	// otherwise it will always contain the default value of ":4000". If any errors are
 	// encountered during parsing the application will be terminated.
 	flag.Parse()
+
+	// Use the slog.New() function to initialize a new structured logger, which
+	// writes to the standard out stream and uses the default settings.
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	mux := http.NewServeMux()
 
@@ -36,13 +41,22 @@ func main() {
 	mux.HandleFunc("GET /code/create", codeCreate)
 	mux.HandleFunc("POST /code/create", codeCreatePost)
 
-	// The value returned from the flag.String() function is a pointer to the flag
-	// value, not the value itself. So in this code, that means the addr variable
-	// is actually a pointer, and we need to dereference it (i.e. prefix it with
-	// the * symbol) before using it. Note that we're using the log.Printf()
-	// function to interpolate the address with the log message.
-	log.Printf("Server running on PORT: %s", *addr)
+	// Use the Info() method to log the starting server message at Info severity
+	// (along with the listen address as an attribute).
+	logger.Info("Starting Server", "addr", *addr)
 
 	err := http.ListenAndServe(*addr, mux)
-	log.Fatal(err)
+
+	// And we also use the Error() method to log any error message returned by
+	// http.ListenAndServe() at Error severity (with no additional attributes),
+	// and then call os.Exit(1) to terminate the application with exit code 1.
+	logger.Error(err.Error())
+	os.Exit(1)
 }
+
+//You can also customize the handler so that it includes the filename and line number of the calling source code in the log entries, like so:
+
+// logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+//     AddSource: true,
+// }))
+//time=2024-03-18T11:29:23.000+00:00 level=INFO source=/home/alex/code/snippetbox/cmd/web/main.go:32 msg="starting server" addr=:4000
