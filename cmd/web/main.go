@@ -37,30 +37,13 @@ func main() {
 		logger: logger,
 	}
 
-	mux := http.NewServeMux()
-
-	// Create a file server which serves files out of the "./ui/static" directory.
-	// Note that the path given to the http.Dir function is relative to the project
-	// directory root.
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
-
-	// Use the mux.Handle() function to register the file server as the handler for
-	// all URL paths that start with "/static/". For matching paths, we strip the
-	// "/static" prefix before the request reaches the file server.
-	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
-
-	// Swap the route declarations to use the application struct's methods as the
-	// handler functions.
-	mux.HandleFunc("GET /{$}", app.home)
-	mux.HandleFunc("GET /code/view/{id}", app.codeView)
-	mux.HandleFunc("GET /code/create", app.codeCreate)
-	mux.HandleFunc("POST /code/create", app.codeCreatePost)
-
 	// Use the Info() method to log the starting server message at Info severity
 	// (along with the listen address as an attribute).
 	logger.Info("Starting Server", "addr", *addr)
 
-	err := http.ListenAndServe(*addr, mux)
+	// Call the new app.routes() method to get the servemux containing our routes,
+	// and pass that to http.ListenAndServe().
+	err := http.ListenAndServe(*addr, app.routes())
 
 	// And we also use the Error() method to log any error message returned by
 	// http.ListenAndServe() at Error severity (with no additional attributes),
@@ -68,10 +51,3 @@ func main() {
 	logger.Error(err.Error())
 	os.Exit(1)
 }
-
-//You can also customize the handler so that it includes the filename and line number of the calling source code in the log entries, like so:
-
-// logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-//     AddSource: true,
-// }))
-//time=2024-03-18T11:29:23.000+00:00 level=INFO source=/home/alex/code/snippetbox/cmd/web/main.go:32 msg="starting server" addr=:4000
