@@ -3,13 +3,15 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 	//family of funcs for safely parsing and rendering HTML templates
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
+// Change the signature of the home handler so it is defined as a method against
+// /*application.
+
+func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Server", "Go")
 
 	// Initialize a slice containing the paths to the two files. It's important
@@ -26,7 +28,12 @@ func home(w http.ResponseWriter, r *http.Request) {
 	// of the files slice as variadic arguments.
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Print(err.Error())
+		// Because the home handler is now a method against the application
+		// struct it can access its fields, including the structured logger. We'll
+		// use this to create a log entry at Error level containing the error
+		// message, also including the request method and URI as attributes to
+		// assist with debugging.
+		app.logger.Error(err.Error(), "method", r.Method, "uri", r.URL.RequestURI())
 		http.Error(w, "Internal Server error", http.StatusInternalServerError)
 		return
 	}
@@ -35,12 +42,16 @@ func home(w http.ResponseWriter, r *http.Request) {
 	// template as the response body.
 	err = ts.ExecuteTemplate(w, "base", nil)
 	if err != nil {
-		log.Print(err.Error())
+		// And we also need to update the code here to use the structured logger
+		// too.
+		app.logger.Error(err.Error(), "method", r.Method, "uri", r.URL.RequestURI())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
 }
 
-func codeView(w http.ResponseWriter, r *http.Request) {
+// Change the signature of the codeView handler so it is defined as a method
+// against *application.
+func (app *application) codeView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
@@ -50,11 +61,15 @@ func codeView(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Display a specific code with ID %d...", id)
 }
 
-func codeCreate(w http.ResponseWriter, r *http.Request) {
+// Change the signature of the codeCreate handler so it is defined as a method
+// against *application.
+func (app *application) codeCreate(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Displaying a form for creating new code snippet..."))
 }
 
-func codeCreatePost(w http.ResponseWriter, r *http.Request) {
+// Change the signature of the codeCreatePost handler so it is defined as a method
+// against *application.
+func (app *application) codeCreatePost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Save a new code snippet..."))
 }
